@@ -6,7 +6,8 @@ groq
 sqlalchemy
 psycopg2-binary
 python-dotenv
-passlib[bcrypt]
+passlib
+bcrypt==4.0.1
 python-jose[cryptography]
 resend
 email-validator
