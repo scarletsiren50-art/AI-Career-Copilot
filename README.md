@@ -9,7 +9,7 @@
 [![Database](https://img.shields.io/badge/Database-PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 ---
 ## TEST THE LIVE APP HERE
-[![AI CAREER COPILOT](https://ai-career-copilot-o0g6lcpzn-scarletsiren50-arts-projects.vercel.app/)]
+[AI CAREER COPILOT](https://ai-career-copilot-o0g6lcpzn-scarletsiren50-arts-projects.vercel.app/)
 ---
 
 ## 👩‍💻 Author
