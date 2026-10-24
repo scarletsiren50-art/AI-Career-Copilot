@@ -7,7 +7,9 @@
 [![Frontend](https://img.shields.io/badge/Frontend-React-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![Backend](https://img.shields.io/badge/API-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-
+---
+## TEST THE LIVE APP HERE
+[![AI CAREER COPILOT](https://ai-career-copilot-o0g6lcpzn-scarletsiren50-arts-projects.vercel.app/)]
 ---
 
 ## 👩‍💻 Author
