@@ -50,7 +50,7 @@ function App() {
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [, setSelectedFile] = useState<File | null>(null);
   const [uploadedFile, setUploadedFile] = useState<string | null>(null);
   const [uploadMessage, setUploadMessage] = useState<string>("");
   const [resumeText, setResumeText] = useState<string>("");
