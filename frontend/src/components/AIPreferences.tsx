@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 type AIPreferencesProps = {
   user: {
     id: number;
@@ -65,7 +67,7 @@ function AIPreferences({ user }: AIPreferencesProps) {
         }
 
         const response = await fetch(
-          `http://127.0.0.1:8000/preferences/${user.id}`,
+          `${API_BASE_URL}/preferences/${user.id}`,
           {
             method: "GET",
             headers: {
@@ -151,7 +153,7 @@ function AIPreferences({ user }: AIPreferencesProps) {
       }
 
       const response = await fetch(
-        `http://127.0.0.1:8000/preferences/${user.id}`,
+        `${API_BASE_URL}/preferences/${user.id}`,
         {
           method: "PUT",
 

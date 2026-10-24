@@ -1,6 +1,8 @@
 import AIPreferences from "./AIPreferences";
 import { useState } from "react";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 type SettingsProps = {
   user: {
     id: number;
@@ -81,7 +83,7 @@ function Settings({ user, onBack }: SettingsProps) {
       }
 
       const response = await fetch(
-        "http://127.0.0.1:8000/auth/change-password",
+        `${API_BASE_URL}/auth/change-password`,
         {
           method: "PUT",
           headers: {
@@ -187,7 +189,7 @@ function Settings({ user, onBack }: SettingsProps) {
 
   try {
     const response = await fetch(
-      "http://127.0.0.1:8000/contact",
+      `${API_BASE_URL}/contact`,
       {
         method: "POST",
         headers: {
@@ -275,7 +277,7 @@ function Settings({ user, onBack }: SettingsProps) {
     }
 
     const response = await fetch(
-      "http://127.0.0.1:8000/auth/delete-account",
+      `${API_BASE_URL}/auth/delete-account`,
       {
         method: "DELETE",
         headers: {

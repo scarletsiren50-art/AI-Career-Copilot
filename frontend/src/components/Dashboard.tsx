@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 type ResumeAnalysis = {
   id: number;
   filename: string;
@@ -51,7 +53,7 @@ function Dashboard({ user }: DashboardProps) {
         }
 
         const response = await fetch(
-          "http://127.0.0.1:8000/resume-analysis",
+          `${API_BASE_URL}/resume-analysis`,
           {
             method: "GET",
             headers: {
@@ -153,7 +155,7 @@ function Dashboard({ user }: DashboardProps) {
     }
 
     const response = await fetch(
-      `http://127.0.0.1:8000/resume-analysis/${selectedAnalysis.id}`,
+      `${API_BASE_URL}/resume-analysis/${selectedAnalysis.id}`,
       {
         method: "DELETE",
         headers: {

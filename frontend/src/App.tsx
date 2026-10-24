@@ -8,6 +8,8 @@ import Profile from "./components/Profile";
 import Settings from "./components/Settings";
 import Dashboard from "./components/Dashboard";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 type ResumeAnalysis = {
   career_summary: string;
   skills: string[];
@@ -66,7 +68,7 @@ function App() {
           return;
         }
         const response = await fetch(
-          "http://127.0.0.1:8000/resume-analysis",
+          `${API_BASE_URL}/resume-analysis`,
           {
             method: "GET",
             headers: {
@@ -208,7 +210,7 @@ const handleSectionNavigation = (sectionId: string) => {
     }
 
     const response = await fetch(
-      "http://127.0.0.1:8000/upload-resume",
+      `${API_BASE_URL}/upload-resume`,
       {
         method: "POST",
         headers: {
@@ -293,7 +295,7 @@ const handleSectionNavigation = (sectionId: string) => {
 
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/career-roadmap",
+        `${API_BASE_URL}/career-roadmap`,
         {
           method: "POST",
           headers: {
@@ -349,7 +351,7 @@ const handleSectionNavigation = (sectionId: string) => {
 
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/match-job",
+        `${API_BASE_URL}/match-job`,
         {
           method: "POST",
           headers: {

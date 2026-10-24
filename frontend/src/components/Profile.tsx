@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 type User = {
   id: number;
   name: string;
@@ -47,7 +49,7 @@ function Profile({
       }
 
       const response = await fetch(
-        `http://127.0.0.1:8000/profile/${user.id}`,
+        `${API_BASE_URL}/profile/${user.id}`,
         {
           method: "PUT",
           headers: {

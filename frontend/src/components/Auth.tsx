@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 type AuthProps = {
   onLoginSuccess: (user: {
     id: number;
@@ -28,8 +30,8 @@ function Auth({ onLoginSuccess }: AuthProps) {
 
     try {
       const endpoint = isLogin
-        ? "http://127.0.0.1:8000/auth/login"
-        : "http://127.0.0.1:8000/auth/signup";
+        ? `${API_BASE_URL}/auth/login`
+        : `${API_BASE_URL}/auth/signup`;
 
       const body = isLogin
         ? {
