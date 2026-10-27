@@ -2,14 +2,15 @@
 
 > An AI-powered career intelligence platform that analyzes resumes, identifies skill gaps, matches users with suitable career opportunities, and generates personalized career roadmaps.
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://ai-career-copilot-o0g6lcpzn-scarletsiren50-arts-projects.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://ai-career-copilot-snowy.vercel.app/)
 [![Backend](https://img.shields.io/badge/Backend-Render-46E3B7?style=for-the-badge&logo=render)](https://ai-career-copilot-backend-50km.onrender.com/)
 [![Frontend](https://img.shields.io/badge/Frontend-React-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![Backend](https://img.shields.io/badge/API-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 ---
-## TEST THE LIVE APP HERE
-[AI CAREER COPILOT](https://ai-career-copilot-o0g6lcpzn-scarletsiren50-arts-projects.vercel.app/)
+## 📌 TEST THE LIVE APP HERE
+
+[CAREER COPILOT](https://ai-career-copilot-snowy.vercel.app/)
 ---
 
 ## 👩‍💻 Author
