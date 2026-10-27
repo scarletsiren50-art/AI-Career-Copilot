@@ -1880,9 +1880,23 @@ def reset_password(
             detail="Invalid password reset request."
         )
 
-    user.password_hash = hash_password(
+    new_password_hash = hash_password(
         request.new_password
     )
+
+    reset_verification = verify_password(
+        request.new_password,
+        new_password_hash
+    )
+
+    print(
+        f"RESET DEBUG: hash_created=True, "
+        f"hash_length={len(new_password_hash)}, "
+        f"hash_prefix={new_password_hash[:4]}, "
+        f"selfverify={reset_verification}"
+    )
+
+    user.password_hash = new_password_hash
 
     password_reset.used = 1
 
