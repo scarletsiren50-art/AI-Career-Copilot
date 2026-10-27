@@ -823,7 +823,7 @@ Do not evaluate based on assumptions or potential.
 """
             }
         ],
-        maax_completion_tokens=4096,
+        max_completion_tokens=4096,
         response_format={
             "type": "json_schema",
 
