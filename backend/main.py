@@ -1189,17 +1189,22 @@ def signup(
 # ============================================================
 # LOGIN
 # ============================================================
-
 @app.post("/auth/login")
 def login(
     request: LoginRequest,
     db: Session = Depends(get_db)
 ):
+    normalized_email = str(request.email).strip().lower()
 
     db_user = (
         db.query(User)
-        .filter(User.email == request.email)
+        .filter(User.email == normalized_email)
         .first()
+    )
+
+    print(
+        f"LOGIN DEBUG: email={normalized_email}, "
+        f"user_found={db_user is not None}"
     )
 
     if not db_user:
@@ -1208,10 +1213,17 @@ def login(
             detail="Invalid email or password."
         )
 
-    if not verify_password(
+    password_valid = verify_password(
         request.password,
         db_user.password_hash
-    ):
+    )
+
+    print(
+        f"LOGIN DEBUG: user_id={db_user.id}, "
+        f"password_valid={password_valid}"
+    )
+
+    if not password_valid:
         raise HTTPException(
             status_code=401,
             detail="Invalid email or password."
@@ -1229,14 +1241,12 @@ def login(
         "message": "Login successful!",
         "access_token": access_token,
         "token_type": "bearer",
-
         "user": {
             "id": db_user.id,
             "name": db_user.name,
             "email": db_user.email
         }
     }
-
 
 # ============================================================
 # CURRENT USER
