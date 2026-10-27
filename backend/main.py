@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
+from datetime import datetime, timedelta
 from pydantic import BaseModel, EmailStr, Field
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -6,21 +7,27 @@ from pypdf import PdfReader
 from dotenv import load_dotenv
 from groq import Groq
 from sqlalchemy.orm import Session
-from database import get_db
-from models import User, UserPreferences, ResumeAnalysis
+from database import get_db, Base, engine
+from models import User, UserPreferences, ResumeAnalysis, PasswordResetToken
 from schemas import UserSignup
 from auth import (
     hash_password,
     verify_password,
     create_access_token,
-    decode_access_token
+    decode_access_token,
+    create_password_reset_token
 )
 import io
 import os
 import json
 import html
-import resend
+import sib_api_v3_sdk
+from sib_api_v3_sdk.rest import ApiException
 
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+BREVO_FROM_EMAIL = os.getenv("BREVO_FROM_EMAIL")
+# Create database tables if they do not already exist
+Base.metadata.create_all(bind=engine)
 
 # ============================================================
 # LOAD ENVIRONMENT VARIABLES
@@ -33,10 +40,9 @@ load_dotenv()
 # RESEND EMAIL CONFIGURATION
 # ============================================================
 
-resend.api_key = os.getenv("RESEND_API_KEY")
-
 CONTACT_EMAIL = os.getenv("CONTACT_EMAIL")
-RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL")
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+BREVO_FROM_EMAIL = os.getenv("BREVO_FROM_EMAIL")
 
 
 # ============================================================
@@ -96,6 +102,15 @@ class ContactRequest(BaseModel):
         max_length=5000
     )
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(
+        min_length=8,
+        max_length=72
+    )
 
 class DeleteAccountRequest(BaseModel):
     current_password: str
@@ -1458,7 +1473,6 @@ def update_preferences(
         }
     }
 
-
 # ============================================================
 # CONTACT US
 # ============================================================
@@ -1469,13 +1483,13 @@ def contact_us(
 ):
 
     # --------------------------------------------------------
-    # Check email configuration
+    # Check Brevo email configuration
     # --------------------------------------------------------
 
     if (
-        not resend.api_key
+        not BREVO_API_KEY
+        or not BREVO_FROM_EMAIL
         or not CONTACT_EMAIL
-        or not RESEND_FROM_EMAIL
     ):
         raise HTTPException(
             status_code=500,
@@ -1503,35 +1517,50 @@ def contact_us(
     ).replace("\n", "<br>")
 
     # --------------------------------------------------------
+    # Configure Brevo API
+    # --------------------------------------------------------
+
+    configuration = sib_api_v3_sdk.Configuration()
+    configuration.api_key["api-key"] = BREVO_API_KEY
+
+    api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
+        sib_api_v3_sdk.ApiClient(configuration)
+    )
+
+    # --------------------------------------------------------
     # Create email
     # --------------------------------------------------------
 
-    email_params: resend.Emails.SendParams = {
+    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
 
-        "from": (
-            f"Career Copilot <{RESEND_FROM_EMAIL}>"
-        ),
+        sender={
+            "name": "Career Copilot",
+            "email": BREVO_FROM_EMAIL
+        },
 
-        "to": [
-            CONTACT_EMAIL
+        to=[
+            {
+                "email": CONTACT_EMAIL
+            }
         ],
 
-        "subject": (
-            f"[Career Copilot] {safe_subject}"
-        ),
+        reply_to={
+            "email": str(request.email),
+            "name": request.name
+        },
 
-        "reply_to": [
-            str(request.email)
-        ],
+        subject=f"[Career Copilot] {safe_subject}",
 
-        "html": f"""
+        html_content=f"""
         <div style="
             font-family: Arial, sans-serif;
             line-height: 1.6;
             color: #333;
+            max-width: 600px;
+            margin: auto;
         ">
 
-            <h2 style="color: #735451;">
+            <h2 style="color: #D7942E;">
                 New Career Copilot Contact Request
             </h2>
 
@@ -1575,16 +1604,16 @@ def contact_us(
 
         </div>
         """
-    }
+    )
 
     # --------------------------------------------------------
-    # Send email
+    # Send email through Brevo
     # --------------------------------------------------------
 
     try:
 
-        resend.Emails.send(
-            email_params
+        api_instance.send_transac_email(
+            send_smtp_email
         )
 
         return {
@@ -1592,10 +1621,10 @@ def contact_us(
             "message": "Your message has been sent successfully!"
         }
 
-    except Exception as error:
+    except ApiException as error:
 
         print(
-            "Contact email error:",
+            "Brevo contact email error:",
             str(error)
         )
 
@@ -1603,6 +1632,267 @@ def contact_us(
             status_code=500,
             detail="Unable to send your message right now."
         )
+
+
+# ===========================================================
+# FORGOT PASSWORD
+# ===========================================================
+
+@app.post("/auth/forgot-password")
+def forgot_password(
+    request: ForgotPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    # --------------------------------------------------------
+    # Always return the same response
+    # This prevents revealing whether an email is registered.
+    # --------------------------------------------------------
+
+    success_response = {
+        "success": True,
+        "message": (
+            "If an account with that email exists, "
+            "a password reset link has been sent."
+            "Please check your inbox and your SPAM or JUNK folder"
+            "if you don't see it"
+        )
+    }
+
+    # --------------------------------------------------------
+    # Find user
+    # --------------------------------------------------------
+
+    user = (
+        db.query(User)
+        .filter(User.email == str(request.email).lower())
+        .first()
+    )
+
+    # Do not reveal whether the email exists
+    if not user:
+        return success_response
+
+    # --------------------------------------------------------
+    # Generate secure reset token
+    # --------------------------------------------------------
+
+    reset_token = create_password_reset_token()
+
+    # Token valid for 30 minutes
+    expires_at = datetime.utcnow() + timedelta(minutes=30)
+
+    # --------------------------------------------------------
+    # Remove previous unused tokens for this user
+    # --------------------------------------------------------
+
+    db.query(PasswordResetToken).filter(
+        PasswordResetToken.user_id == user.id,
+        PasswordResetToken.used == 0
+    ).delete(
+        synchronize_session=False
+    )
+
+    # --------------------------------------------------------
+    # Save new reset token
+    # --------------------------------------------------------
+
+    password_reset = PasswordResetToken(
+        user_id=user.id,
+        token=reset_token,
+        expires_at=expires_at,
+        used=0
+    )
+
+    db.add(password_reset)
+    db.commit()
+
+    # --------------------------------------------------------
+    # Create reset link
+    # --------------------------------------------------------
+
+    reset_link = (
+        "https://ai-career-copilot-snowy.vercel.app"
+        f"/reset-password?token={reset_token}"
+    )
+
+    # =========================
+    # SEND PASSWORD RESET EMAIL
+    # =========================
+
+    if not BREVO_API_KEY or not BREVO_FROM_EMAIL:
+        print("Brevo email service is not configured.")
+        return success_response
+
+    configuration = sib_api_v3_sdk.Configuration()
+    configuration.api_key["api-key"] = BREVO_API_KEY
+
+    api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
+        sib_api_v3_sdk.ApiClient(configuration)
+    )
+
+    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+        sender={
+            "name": "Career Copilot",
+            "email": BREVO_FROM_EMAIL
+        },
+        to=[
+            {
+                "email": str(user.email),
+                "name": user.name
+            }
+        ],
+        subject="Reset Your Career Copilot Password",
+        html_content=f"""
+        <div style="
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: auto;
+        ">
+            <h2 style="color: #D7942E;">
+                Reset Your Password
+            </h2>
+
+            <p>Hi {html.escape(user.name)},</p>
+
+            <p>
+                We received a request to reset your
+                Career Copilot password.
+            </p>
+
+            <p>
+                Click the button below to create a new password:
+            </p>
+
+            <p>
+                <a href="{reset_link}" style="
+                    display: inline-block;
+                    padding: 12px 22px;
+                    background: #D7942E;
+                    color: #24152F;
+                    text-decoration: none;
+                    border-radius: 6px;
+                    font-weight: bold;
+                ">
+                    Reset Password
+                </a>
+            </p>
+
+            <p>
+                This link will expire in
+                <strong>30 minutes</strong>.
+            </p>
+
+            <p>
+                If you did not request a password reset,
+                you can safely ignore this email.
+            </p>
+
+            <p style="font-size: 13px; color: #777;">
+                For security reasons, this link can only
+                be used once.
+            </p>
+
+            <p style="font-size: 13px; color: #777;">
+                If you don't see this email in your inbox,
+                please check your Spam or Junk folder.
+            </p>
+
+            <p>
+                Regards,<br>
+                <strong>Career Copilot</strong>
+            </p>
+        </div>
+        """
+    )
+
+    try:
+        api_response = api_instance.send_transac_email(
+            send_smtp_email
+        )
+        print("Password reset email sent:", api_response)
+
+    except ApiException as error:
+        print(
+            "Brevo password reset email error:",
+            str(error)
+        )
+
+    return success_response
+
+# ============================================================
+# RESET PASSWORD
+# ============================================================
+
+@app.post("/auth/reset-password")
+def reset_password(
+    request: ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    password_reset = (
+        db.query(PasswordResetToken)
+        .filter(
+            PasswordResetToken.token == request.token
+        )
+        .first()
+    )
+
+    if not password_reset:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid or expired password reset link."
+        )
+
+    if password_reset.used == 1:
+        raise HTTPException(
+            status_code=400,
+            detail="This password reset link has already been used."
+        )
+
+    if password_reset.expires_at < datetime.utcnow():
+        raise HTTPException(
+            status_code=400,
+            detail="This password reset link has expired."
+        )
+
+    user = (
+        db.query(User)
+        .filter(
+            User.id == password_reset.user_id
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid password reset request."
+        )
+
+    user.password_hash = hash_password(
+        request.new_password
+    )
+
+    password_reset.used = 1
+
+    db.query(PasswordResetToken).filter(
+        PasswordResetToken.user_id == user.id,
+        PasswordResetToken.id != password_reset.id,
+        PasswordResetToken.used == 0
+    ).update(
+        {
+            PasswordResetToken.used: 1
+        },
+        synchronize_session=False
+    )
+
+    db.commit()
+
+    return {
+        "success": True,
+        "message": "Password reset successfully."
+    }
 
 
 # ============================================================

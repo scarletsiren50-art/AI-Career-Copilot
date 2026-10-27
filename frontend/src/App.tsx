@@ -7,6 +7,7 @@ import Auth from "./components/Auth";
 import Profile from "./components/Profile";
 import Settings from "./components/Settings";
 import Dashboard from "./components/Dashboard";
+import ResetPassword from "./components/ResetPassword";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -35,6 +36,8 @@ type CareerRoadmap = {
 };
 
 function App() {
+  const isResetPasswordPage =
+    window.location.pathname === "/reset-password";
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [user, setUser] = useState<{
@@ -385,9 +388,24 @@ const handleSectionNavigation = (sectionId: string) => {
     }
   };
 
-  /*
-   * Show authentication screen when no user is logged in.
-   */
+  if (isResetPasswordPage) {
+    return (
+        <div className="app">
+            <ResetPassword
+                onBackToLogin={() => {
+                    window.history.pushState(
+                        {},
+                        "",
+                        "/"
+                    );
+
+                    window.location.reload();
+                }}
+            />
+        </div>
+    );
+}
+  
   if (!user) {
     return (
       <div className="app">

@@ -101,3 +101,13 @@ def decode_access_token(token: str) -> dict:
 
     except JWTError:
         raise ValueError("Invalid or expired token.")
+
+# =========================
+# PASSWORD RESET TOKEN
+# =========================
+
+import secrets
+
+
+def create_password_reset_token() -> str:
+    return secrets.token_urlsafe(32)
