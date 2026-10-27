@@ -175,7 +175,7 @@ app.add_middleware(
     "http://localhost:5173",
     "https://ai-career-copilot-snowy.vercel.app",
     "https://ai-career-copilot-o0g6lcpzn-scarletsiren50-arts-projects.vercel.app"
-    ]
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
