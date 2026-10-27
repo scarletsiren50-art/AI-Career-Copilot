@@ -3819,3 +3819,62 @@ a {
     width: 100%;
   }
 }
+
+/* =========================================
+   PASSWORD RESET PAGE - CENTERED LAYOUT
+========================================= */
+
+.auth-page {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 40px 20px;
+}
+
+.auth-page .auth-card {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* =========================================
+   RESET PASSWORD INPUTS
+========================================= */
+
+.auth-page .auth-input-group {
+  width: 100%;
+}
+
+.auth-page .auth-input-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.auth-page .auth-input-group input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 15px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-page .auth-input-group input::placeholder {
+  color: var(--muted-dark);
+}
+
+.auth-page .auth-input-group input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
