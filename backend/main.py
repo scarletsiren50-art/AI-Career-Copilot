@@ -446,12 +446,17 @@ Analyze the following resume using the candidate's saved
 career preferences and the rules provided above.
 
 RESUME:
-
 {resume_text}
+
+Return recommendations that are:
+- Specific to this candidate
+- Realistic for their current level
+- Useful for internships, placements, and early-career roles
+- Directly supported by the resume
 """
                 }
             ],
-
+            max_completion_tokens=4096,
             response_format={
                 "type": "json_schema",
 
@@ -803,7 +808,7 @@ Do not evaluate based on assumptions or potential.
 """
             }
         ],
-
+        maax_completion_tokens=4096,
         response_format={
             "type": "json_schema",
 
@@ -1023,7 +1028,7 @@ Make each step practical, specific, and achievable.
 """
             }
         ],
-
+        max_completion_tokens=4096,
         response_format={
             "type": "json_schema",
 
