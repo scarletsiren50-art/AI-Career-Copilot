@@ -407,7 +407,7 @@ http://localhost:5173
 
 **Vercel**
 
-https://ai-career-copilot-o0g6lcpzn-scarletsiren50-arts-projects.vercel.app/
+https://ai-career-copilot-snowy.vercel.app/
 
 ### Backend
 
